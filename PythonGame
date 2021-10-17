@@ -1,2 +1,239 @@
-# Football
-Two possession football game against com.
+# Two possession football game against computer
+
+import random
+
+# These global variables allow us to access and assign values to them from any function
+global yards_to_TD
+yards_to_TD = 80
+global yards_to_first
+yards_to_first = 10
+global downs_counter
+downs_counter = 1
+global computer_score
+computer_score = 0
+global player_score
+player_score = 0
+global turn_count
+turn_count = 0
+
+
+def endgame():  # This function compares scores and declares a winner (or tie) once both players have had 2 turns
+    if computer_score > player_score:
+        print("Too bad, the computer won", computer_score, "to", player_score)
+        exit()
+    elif player_score > computer_score:
+        print("Nice! You beat the computer", player_score, "to", computer_score)
+        exit()
+    else:
+        print("Wow, you tied at", player_score, "points!")
+        exit()
+
+
+def touchdown():  # This function checks if the player has entered the end zone and will increment player_score
+    global player_score
+    global yards_to_first
+    if yards_to_TD <= 0:
+        yards_to_first = 10
+        player_score = player_score + 7
+        print("Nice! you got a touchdown. Your score is", player_score)
+        computers_turn()
+
+
+def kick():  # Allows players to kick a FG if yards_to_TD < 50 and increments score if successful
+    global yards_to_TD
+    global player_score
+    kick_distance = int(random.randint(1, 100))
+    needed_distance = yards_to_TD * 2
+    if yards_to_TD >= 50:
+        print("You're too far away for a field goal.")
+        next_play()
+    elif kick_distance > needed_distance:
+        print("You made the field goal!")
+        player_score = player_score + 3
+        computers_turn()
+    else:
+        print("You missed the kick!")
+        computers_turn()
+
+
+# executes the computers turn and randomly assigns computer_score 0, 3, or 7
+# also checks if both players have went twice. If so, the function runs endgame()
+def computers_turn():
+    global computer_score
+    global yards_to_TD
+    global turn_count
+    print("It's the computers turn.")
+    computers_decision = int(random.randint(1, 3))
+    if computers_decision == 1:
+        computer_score = computer_score + 0
+        turn_count += 1
+        if turn_count == 2:
+            endgame()
+        else:
+            print("The computer has scored", computer_score, "points!")
+            print("Back to your turn.")
+    elif computers_decision == 2:
+        computer_score = computer_score + 3
+        turn_count += 1
+        if turn_count == 2:
+            endgame()
+        else:
+            print("The computer has scored", computer_score, "points!")
+            print("Back to your turn.")
+    else:
+        computer_score = computer_score + 7
+        turn_count += 1
+        if turn_count == 2:
+            endgame()
+        else:
+            print("The computer has scored", computer_score, "points!")
+            print("Back to your turn.")
+    yards_to_TD = 80
+
+
+def down_increment():  # Increments downs and will turnover ball if downs_counter > 4
+    global downs_counter
+    global yards_to_first
+    if yards_to_TD <= 0:
+        touchdown()
+    elif yards_to_first > 0:
+        downs_counter += 1
+        if downs_counter > 4:
+            downs_counter = 1
+            yards_to_first = 10
+            print("Turnover on downs.")
+            computers_turn()
+        else:
+            print("It is down number", downs_counter, ".")
+    elif yards_to_first <= 0:
+        downs_counter = 1
+        yards_to_first = 10
+        print("You're on the", yards_to_TD, " yard line. It is", downs_counter, "down.")
+        print("You have", yards_to_first, "yards till a first down.")
+        next_play()
+
+
+def next_play():  # This function runs everytime the player makes a play selection, continuing the game
+    touchdown()
+    print("Run; 1")
+    print("Throw; 2")
+    print("Kick field goal; 3")
+    print("Quit; 4")
+    choice = int(input("What's the next play? "))
+    if choice == 1:
+        run()
+    elif choice == 2:
+        throw()
+    elif choice == 3:
+        kick()
+    elif choice == 4:
+        exit()
+    else:
+        print("Incorrect input")
+        next_play()
+
+
+def print_yards_left():  # Tells the player how close they are to a 1st down/touchdown
+    global yards_to_first
+    print("It is", yards_to_first, "yards till a first down.")
+    print("You have", yards_to_TD, "yards left!")
+
+
+def run():  # Lets player decide if they want to run a conservative or risky play
+    global yards_to_TD
+    global yards_to_first
+    choice = int(input("Would you like to run a conservative play (1) or a risky play (2)? "))
+    if choice == 1:
+        conservative_yards = int(random.randint(1, 3))
+        yards_to_TD = yards_to_TD - conservative_yards
+        yards_to_first = yards_to_first - conservative_yards
+        down_increment()
+        print_yards_left()
+        next_play()
+    elif choice == 2:
+        risky_yards = int(random.randint(-3, 7))
+        yards_to_TD = yards_to_TD - risky_yards
+        yards_to_first = yards_to_first - risky_yards
+        down_increment()
+        print_yards_left()
+        next_play()
+    else:
+        print("Invalid choice")
+        run()
+
+
+def throw():  # Similar to run()
+    global yards_to_TD
+    global yards_to_first
+    choice = int(input("Would you like to do a short throw (1) or a long throw (2)? "))
+    if choice == 1:
+        pass_success = int(random.randint(0, 100))
+        if pass_success > 25:
+            conservative_yards = 3
+            yards_to_TD = yards_to_TD - conservative_yards
+            yards_to_first = yards_to_first - conservative_yards
+            down_increment()
+            print_yards_left()
+            next_play()
+        else:
+            down_increment()
+            print_yards_left()
+            next_play()
+
+    elif choice == 2:
+        pass_success = int(random.randint(0, 100))
+        if 50 <= pass_success < 75:
+            risky_yards = 8
+            yards_to_TD = yards_to_TD - risky_yards
+            yards_to_first = yards_to_first - risky_yards
+            down_increment()
+            print_yards_left()
+            next_play()
+        elif 80 <= pass_success < 100:
+            print("Nice throw!")
+            risky_yards = 15
+            yards_to_TD = yards_to_TD - risky_yards
+            yards_to_first = yards_to_first - risky_yards
+            down_increment()
+            print_yards_left()
+            next_play()
+        elif pass_success == 100:
+            yards_to_TD = 0
+            print("That throw was God like!")
+            touchdown()
+            yards_to_TD = 80
+            next_play()
+        else:
+            down_increment()
+            print_yards_left()
+            next_play()
+    else:
+        print("Invalid choice")
+        throw()
+
+
+def main():  # Initializes program
+    print("Welcome to your very own football game!")
+    print("You have the ball first on your 20 yard line.")
+    print("It is 1st and 10. What would you like to do?")
+    print("Run; 1")
+    print("Throw; 2")
+    print("Kick field goal; 3")
+    print("Quit; 4")
+    choice = int(input("Which play will you choose? "))
+    if choice == 1:
+        run()
+    elif choice == 2:
+        throw()
+    elif choice == 3:
+        kick()
+    elif choice == 4:
+        exit()
+    else:
+        print("Incorrect input")
+        main()
+
+
+
+main()
+
